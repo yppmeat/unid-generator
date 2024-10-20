@@ -10,7 +10,6 @@ try {
   const repeat = 250_000;
 
   log('----- 動作確認 -----');
-  log(`isCryptoSupported: ${UNID.isCryptoSupported}`);
   const id = unid.generateID();
   log(`id: ${id}`);
   const data = unid.decodeID(id);
