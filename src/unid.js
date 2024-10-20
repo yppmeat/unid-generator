@@ -55,14 +55,16 @@ class UNID {
   static #convertIntToBase(result, number, base, length) {
     for (let i = length - 1; i >= 0; i--) {
       result[i] = number % base;
-      number = Math.floor(number / base);
+      number = number / base | 0;
     }
   }
   
   static #convertBaseToInt(array, base) {
     let result = 0;
-    for(let i = 0; i < array.length; i++) {
-      result += array[i] * Math.pow(base, array.length - 1 - i);
+    let multiplier = 1;
+    for(let i = array.length - 1; i >= 0; i--) {
+      result += array[i] * multiplier;
+      multiplier *= base;
     }
     return result;
   }
@@ -90,13 +92,13 @@ class UNID {
     UNID.#convertIntToBase(result.subarray(7), this.#counter, 90, 2);
     
     const counterMod10 = this.#counter % 10;
-    const randomValue = Math.floor(Math.random() * (30 - 1)) + 1;
+    const randomValue = (crypto.getRandomValues(new Uint8Array(1))[0] / 256 * 29 | 0) + 1;
     result[0] = (result[0] - 1) * 30 + randomValue;
     
     const offsetPattern = UNID.#offsetPatterns[randomValue - 1];
-    const maxValue = 94 - counterMod10;
+    const maxValue = (94 - counterMod10) / 94;
     for(let i = 0; i < 7; i++) {
-      result[i + 1] = UNID.#getRemainderInRange(result[i + 1] + ((offsetPattern[i] * maxValue / 94) | 0) + counterMod10);
+      result[i + 1] = UNID.#getRemainderInRange(result[i + 1] + (offsetPattern[i] * maxValue | 0) + counterMod10);
     }
     
     UNID.#rotateArrayInPlace(result.subarray(0, 8), counterMod10);
@@ -128,10 +130,10 @@ class UNID {
     const randomValue = unscrambledArray[0] % 30;
     unscrambledArray[0] = Math.ceil(unscrambledArray[0] / 30);
     
-    const maxValue = 94 - counterMod10;
+    const maxValue = (94 - counterMod10) / 94;
     const scaledOffset = UNID.#offsetPatterns[randomValue - 1];
     for(let i = 0; i < 7; i++) {
-      unscrambledArray[i + 1] = UNID.#getRemainderInRange(unscrambledArray[i + 1] - ((scaledOffset[i] * maxValue / 94) | 0) - counterMod10);
+      unscrambledArray[i + 1] = UNID.#getRemainderInRange(unscrambledArray[i + 1] - (scaledOffset[i] * maxValue | 0) - counterMod10);
     }
     
     const decodedTime = UNID.#convertBaseToInt(unscrambledArray.subarray(0, 7), 94);
