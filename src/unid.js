@@ -3,6 +3,7 @@ class UNID {
   #counter = 0;
   static #ASCII_SET = '3y|DWs^oH2%I\'k"qUmY6Q9.(rNLJ,j0`]P$5?CzM*><=@Kn~&a;OwEf)[xhZBpSGlg}-b/cX:{#AvR7Tu+ei4d_!1F\\8tV';
   static #cachedAsciiIndexMap = new Map(UNID.#ASCII_SET.split('').map((char, index) => [char, index]));
+  static isCryptoSupported = Object.freeze(location.protocol === 'https:' && 'getRandomValues' in crypto);
   static #sp = [
     '267548103',
     '423108567',
@@ -88,7 +89,7 @@ class UNID {
     UNID.#convertIntToBase(result.subarray(7), this.#counter, 90, 2);
     
     const counterMod10 = this.#counter % 10;
-    const randomValue = (crypto.getRandomValues(new Uint8Array(1))[0] / 256 * 29 | 0) + 1;
+    const randomValue = ((UNID.isCryptoSupported ? crypto.getRandomValues(new Uint8Array(1))[0] / 256 : Math.random()) * 29 | 0) + 1;
     result[0] = (result[0] - 1) * 30 + randomValue;
     
     const offsetPattern = UNID.#offsetPatterns[randomValue - 1];
