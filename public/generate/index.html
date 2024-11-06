@@ -3,10 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/gh/yppmeat/unid-generator@c0c9ed122e41db8f2ad119d5ae3e59767d295fb7/src/unid.min.js"></script>
+  <script src="../../dist/unid.min.js"></script>
   <script src="index.js" defer></script>
+  <style>
+    .id-generator {
+      width: fit-content;
+    }
+    .generate {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+    }
+    textarea {
+      width: 150%;
+      height: 6rem;
+      min-height: 1rem;
+      margin-top: .5rem;
+      resize: vertical;
+    }
+    input[type=button] {
+      cursor: pointer;
+    }
+    #id-generate-output {
+      height: 15rem;
+    }
+  </style>
 </head>
 <body>
-  
+  <div class="id-generator">
+    <div class="wrapper">
+      <h2>ID生成</h2>
+      <div class="generate">
+        回数: <input type="number" min="1" max="500000" value="50" id="generate-count">回
+        <input type="button" value="生成" onclick="generate()">
+      </div>
+      <textarea readonly id="id-generate-output" placeholder="生成結果"></textarea>
+    </div>
+    <div class="wrapper">
+      <h2>ID復号</h2>
+      ID:<br>
+      <textarea id="id-decode-input" placeholder="改行区切りのID"></textarea><br>
+      <input type="button" value="復号" onclick="decode()"><br>
+      <textarea readonly id="id-decode-output" placeholder="復号結果"></textarea>
+    </div>
+  </div>
 </body>
 </html>

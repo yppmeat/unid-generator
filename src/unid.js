@@ -1,9 +1,9 @@
 class UNID {
-  #timestamp = 0;
-  #counter = 0;
+  static #timestamp = 0;
+  static #counter = 0;
   static #ASCII_SET = '3y|DWs^oH2%I\'k"qUmY6Q9.(rNLJ,j0`]P$5?CzM*><=@Kn~&a;OwEf)[xhZBpSGlg}-b/cX:{#AvR7Tu+ei4d_!1F\\8tV';
   static #cachedAsciiIndexMap = new Map(UNID.#ASCII_SET.split('').map((char, index) => [char, index]));
-  static #sp = [
+  static #sortPatterns = [
     '267548103',
     '423108567',
     '046238157',
@@ -14,9 +14,8 @@ class UNID {
     '051478632',
     '103248657',
     '071348625'
-  ];
-  static #sortPatterns = UNID.#sp.map(num => num.split('').map(v => +v));
-  static #op = [
+  ].map(num => num.split('').map(v => +v));
+  static #offsetPatterns = [
     'jzG[T}S',
     'XJvrYAZ',
     'y^0[z9+',
@@ -47,8 +46,7 @@ class UNID {
     '3"2gzNB',
     'uO*Dep~',
     '}jp+Pl,'
-  ];
-  static #offsetPatterns = UNID.#op.map(v => v.split('').map(t => UNID.#cachedAsciiIndexMap.get(t)));
+  ].map(v => v.split('').map(t => UNID.#cachedAsciiIndexMap.get(t)));
   
   static #convertIntToBase(result, number, base, length) {
     for (let i = length - 1; i >= 0; i--) {
@@ -74,59 +72,66 @@ class UNID {
     array.set(temp, 0);
   }
   
-  generateID() {
+  static generateID() {
+    const unid = UNID;
     const currentTime = Date.now();
-    if(this.#timestamp !== currentTime) {
-      this.#timestamp = currentTime;
-      this.#counter = 0;
+    if(unid.#timestamp !== currentTime) {
+      unid.#timestamp = currentTime;
+      unid.#counter = 0;
     } else {
-      this.#counter++;
+      unid.#counter++;
     }
 
     const result = new Uint8Array(9);
-    UNID.#convertIntToBase(result, currentTime, 94, 7);
-    UNID.#convertIntToBase(result.subarray(7), this.#counter, 90, 2);
+    unid.#convertIntToBase(result, currentTime, 94, 7);
+    unid.#convertIntToBase(result.subarray(7), unid.#counter, 90, 2);
     
-    const counterMod10 = this.#counter % 10;
+    const counterMod10 = unid.#counter % 10;
     const randomValue = (Math.random() * 29 | 0) + 1;
     result[0] = (result[0] - 1) * 30 + randomValue;
     
-    const offsetPattern = UNID.#offsetPatterns[randomValue - 1];
+    const offsetPattern = unid.#offsetPatterns[randomValue - 1];
     for(let i = 0; i < 7; i++) {
       result[i + 1] = ((result[i + 1] + offsetPattern[i] + counterMod10) % 94 + 94) % 94;
     }
     
-    UNID.#rotateArrayInPlace(result.subarray(0,  8), counterMod10);
+    unid.#rotateArrayInPlace(result.subarray(0,  8), counterMod10);
     
-    const sortPattern = UNID.#sortPatterns[counterMod10];
+    const sortPattern = unid.#sortPatterns[counterMod10];
     let asciiResult = '';
     for(let i = 0; i < 9; i++) {
-      asciiResult += UNID.#ASCII_SET[result[sortPattern[i]] % 94];
+      asciiResult += unid.#ASCII_SET[result[sortPattern[i]] % 94];
     }
     
     return asciiResult;
   }
   
-  decodeID(id) {
-    const counterMod10 = UNID.#cachedAsciiIndexMap.get(id[5]) % 10;
-    const sortPattern = UNID.#sortPatterns[counterMod10];
-    const unscrambledArray = new Uint8Array(9);
-    for(let i = 0; i < 9; i++) {
-      unscrambledArray[sortPattern[i]] = UNID.#cachedAsciiIndexMap.get(id[i]);
-    };
-    
-    UNID.#rotateArrayInPlace(unscrambledArray.subarray(0,  8), -counterMod10);
-    
-    const randomValue = unscrambledArray[0] % 30;
-    unscrambledArray[0] = Math.ceil(unscrambledArray[0] / 30);
-    
-    const scaledOffset = UNID.#offsetPatterns[randomValue - 1];
-    for(let i = 0; i < 7; i++) {
-      unscrambledArray[i + 1] = ((unscrambledArray[i + 1] - scaledOffset[i] - counterMod10) % 94 + 94) % 94;
+  static decodeID(id) {
+    try {
+      const unid = UNID;
+      const counterMod10 = unid.#cachedAsciiIndexMap.get(id[5]) % 10;
+      const sortPattern = unid.#sortPatterns[counterMod10];
+      const unscrambledArray = new Uint8Array(9);
+      for(let i = 0; i < 9; i++) {
+        unscrambledArray[sortPattern[i]] = unid.#cachedAsciiIndexMap.get(id[i]);
+      };
+      
+      unid.#rotateArrayInPlace(unscrambledArray.subarray(0,  8), -counterMod10);
+      
+      const randomValue = unscrambledArray[0] % 30;
+      unscrambledArray[0] = Math.ceil(unscrambledArray[0] / 30);
+      
+      const scaledOffset = unid.#offsetPatterns[randomValue - 1];
+      for(let i = 0; i < 7; i++) {
+        unscrambledArray[i + 1] = ((unscrambledArray[i + 1] - scaledOffset[i] - counterMod10) % 94 + 94) % 94;
+      }
+      
+      const decodedTime = unid.#convertBaseToInt(unscrambledArray.subarray(0,  7), 94);
+      const decodedCounter = unid.#convertBaseToInt(unscrambledArray.subarray(7,  9), 90);
+      return { timestamp: decodedTime, index: decodedCounter };
+    } catch(e) {
+      console.log(e);
+      return null;
     }
-    
-    const decodedTime = UNID.#convertBaseToInt(unscrambledArray.subarray(0,  7), 94);
-    const decodedCounter = UNID.#convertBaseToInt(unscrambledArray.subarray(7,  9), 90);
-    return { timestamp: decodedTime, index: decodedCounter };
   }
 }
