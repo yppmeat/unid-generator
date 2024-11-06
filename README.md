@@ -7,9 +7,9 @@
 
 - **タイムスタンプベース**: タイムスタンプを使用してIDを生成するため、IDのデコードが可能
 - **カウンター**: カウンターを使用しているため同じタイムスタンプでも順序を保つことが可能
-- **高速**: 1秒間に平均165万件のIDを生成・デコード可能
-- **短い**: 9文字のIDを生成可能
-- **低い衝突リスク**: 同一のタイムスタンプで別々のインスタンスでIDを生成しない限り、衝突することはない
+- **高速**: 1秒間に平均130万件のIDを生成・デコード可能
+- **短い**: 9文字で生成可能
+- **低い衝突リスク**: 同一のタイムスタンプで複数回生成しても衝突することはない
 
 ## 他のID生成ライブラリとの比較
 
@@ -19,7 +19,7 @@
 | デコード | 可能 | 不可能 | 可能 | 可能 | 不可能 |
 | ユニーク性 | 時間<br>+カウンター<br>+ランダム | ランダム | 時間<br>+ランダム | 時間<br>+カウンター<br>+クライアント識別子<br>+ランダム | ランダム |
 | セキュア | いいえ | はい | 部分的 | 部分的 | はい |
-| ファイルサイズ | 1.68KB | 1.33KB | 2.31KB | 1.97KB | 197Bytes |
+| ファイルサイズ | 1.67KB | 1.33KB | 2.31KB | 1.97KB | 197Bytes |
 | NodeJS対応 | いいえ | はい | はい | はい | はい |
 
 ## インポート
@@ -27,30 +27,29 @@
 HTMLファイルのheadタグ直下に以下を追加します。
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/yppmeat/unid-generator@c0c9ed122e41db8f2ad119d5ae3e59767d295fb7/src/unid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/yppmeat/unid-generator@b1eebacd48e7b9478812056abcdeaccf9d1c3f53/dist/unid.min.js"></script>
 ```
 
 ## 使い方
 
 ```js
-// インスタンス生成
-const unid = new UNID();
-
 // ユニークIDを生成
-const id = unid.generateID();
+const id = UNID.generateID();
 console.log(id);
 
 // IDをデコードして、タイムスタンプとカウンターを取得
-const { timestamp, index } = unid.decodeID(id);
+const { timestamp, index } = UNID.decodeID(id);
 console.log(timestamp, index);
 ```
 
-1. インスタンス生成:
-  - `new UNID()`を使用します。
-2. ID生成:
+1. ID生成:
   - `UNID.generateID()`を使用します。
   - 返される値は9文字の文字列です。
-  - 注: 同じタイムスタンプに複数インスタンスから呼ばないでください。カウンターが被り衝突の可能性が高まります。
-3. IDデコード:
+2. IDデコード:
   - `UNID.decodeID(id)`を使用します。
   - 返される値はオブジェクトで、`timestamp`と`index`(カウンター)を持ちます。
+
+## テスト用ページ
+
+- [速度確認テスト](https://yppmeat.github.io/unid-generator/public/test/)
+- [動作確認テスト](https://yppmeat.github.io/unid-generator/public/generate/)
